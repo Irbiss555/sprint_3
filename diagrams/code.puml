@@ -1,0 +1,25 @@
+@startuml
+actor Sensor
+participant "IoT Gateway" as IoT
+participant "Kafka (telemetry-data)" as KafkaTD
+participant "Telemetry Service" as Telemetry
+participant "Kafka (telemetry-events)" as KafkaTE
+participant "Automation Service" as Automation
+participant "Kafka (trigger-actuator)" as KafkaTA
+participant "Actuator Service" as Actuator
+participant "Kafka (actuator-action)" as KafkaAA
+participant "IoT Gateway" as IoT2
+participant "Actuator Device" as Device
+
+Sensor -> IoT : send MQTT temperature
+IoT -> KafkaTD : publish telemetry-data
+KafkaTD -> Telemetry : consume telemetry-data
+Telemetry -> KafkaTE : publish telemetry-events
+KafkaTE -> Automation : consume telemetry-events
+Automation -> KafkaTA : publish trigger-actuator
+KafkaTA -> Actuator : consume trigger-actuator
+Actuator -> KafkaAA : publish actuator-action
+KafkaAA -> IoT2 : consume actuator-action
+IoT2 -> Device : send MQTT command
+
+@enduml
