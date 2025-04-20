@@ -1,0 +1,35 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+
+Container_Boundary(actuator_container, "Actuator Container") {
+  Container(actuator_service, "Actuator Service", "Go", "Управление устройствами умного дома")
+  Container(actuator_db, "Database", "PostgreSQL", "Хранение статусов и команд устройств")
+}
+  Container(api_gateway, "API Gateway", "Маршрутизирует запросы пользователей")
+  Container(kafka, "Kafka", "Apache Kafka", "Шина событий")
+  Container_Ext(iot_gateway, "IoT Gateway", "C/C++")
+
+
+Container(actuator_service, "Actuator Service", "Go", "Управление устройствами умного дома") {
+    Component(api_controller, "API Controller", "REST API", "Обрабатывает входящие HTTP-запросы")
+    Component(consumer, "Consumer", "Обрабатывает команды из Kafka")
+    Component(producer, "Producer", "Публикует команды в Kafka")
+    Component(service_layer, "Service Layer", "Bussiness Logic", "Логика обработки команд")
+    Component(repository_layer, "Repository Layer", "Доступ к базе данных актуаторов")
+}
+
+Rel(api_controller, service_layer, "Вызов бизнес-логики")
+Rel(consumer, service_layer, "Вызов бизнес-логики")
+Rel(producer, service_layer, "Вызов бизнес-логики")
+
+Rel(service_layer, repository_layer, "Чтение/запись")
+Rel(repository_layer, actuator_db, "Чтение/запись данных")
+
+Rel(api_gateway, api_controller, "Отправка команды на устройство", "REST")
+
+Rel(producer, kafka, "publish actuator-action", "Kafka")
+Rel(kafka, consumer, "consume actuator-action", "Kafka")
+Rel(iot_gateway, kafka, "send telemetry-data", "Kafka")
+Rel(kafka, iot_gateway, "receive actuator-action", "Kafka")
+@enduml
