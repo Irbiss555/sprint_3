@@ -1,0 +1,68 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+' Person(user, "Пользователь", "Управляет домом через приложение")
+Person(user, "Пользователь", "Управляет устройствами и смотрит телеметрию с датчиков, самостоятельно регистрирует устройства")
+' Person(installer, "Специалист", "Устанавливает и подключает оборудование")
+System(smart_home, "Smart Home", "Система управления умным домом")
+System_Ext(devices, "Devices", "Устройства умного дома")
+' System_Ext(actuator, "Actuators", "Устройства, которые выполняют функции умного дома")
+
+' Rel(user, monolith, "Веб-доступ")
+' Rel(installer, monolith, "Конфигурирует при установке")
+' Rel(monolith, sensor, "Запрашивает температуру и включает/выключает отопление", "Синхронный запрос")
+System_Boundary(devices, "Устройства умного дома") {
+    Container_Ext(iot_gateway, "IoT Gateway", "C/C++")
+    Container_Ext(sensor, "Sensors", "Датчики для мониторинга")
+    Container_Ext(actuator, "Actuators", "Устройства, которые выполняют функции умного дома")
+    }
+
+System_Boundary(smart_home, "Система управления умным домом") {
+  Container(web_app, "Web Application", "JS, CSS", "Веб-приложение для управления устройствами")
+  Container(mobile_app, "Mobile Application", "Kotlin, Swift", "Мобильное приложение для управления устройствами")
+
+  Container(api_gateway, "API Gateway", "Маршрутизирует запросы пользователей")
+  Container(user_service, "User Service", "Go", "Управление пользователями и авторизацией")
+  Container(device_service, "Device Management Service", "Go", "Регистрация новых устройств")
+  Container(actuator_service, "Actuator Service", "Go", "Управление устройствами умного дома")
+  Container(telemetry_service, "Telemetry Service", "Go", "Сбор и хранение телеметрии")
+  Container(automation_service, "Device Automation Service", "Go", "Автоматизация устройств пользователя")
+  Container(Kafka, "Kafka", "Apache Kafka", "Шина событий")
+  ContainerDb(pg_user, "User DB", "PostgreSQL", "Хранение данных пользователей")
+  ContainerDb(actuator_db, "Actuator DB", "PostgreSQL", "Хранение текущих статусов и команд устройств")
+  ContainerDb(automation_db, "Automation DB", "PostgreSQL", "Хранение данных сценариев")
+  ContainerDb(pg_device, "Device DB", "PostgreSQL", "Хранение данных устройств")
+  ContainerDb(pg_telemetry, "Telemetry DB", "TimescaleDB", "История телеметрии")
+}
+
+Rel(user, web_app, "HTTP")
+Rel(user, mobile_app, "HTTP")
+
+Rel(web_app, api_gateway, "", "REST")
+Rel(mobile_app, api_gateway, "", "REST")
+Rel(api_gateway, user_service, "", "REST")
+Rel(api_gateway, device_service, "", "REST")
+Rel(api_gateway, actuator_service, "", "REST")
+Rel(api_gateway, automation_service, "", "REST")
+Rel(iot_gateway, api_gateway, "Register device", "REST")
+
+Rel(user_service, pg_user, "JDBC")
+Rel(device_service, pg_device, "JDBC")
+Rel(telemetry_service, pg_telemetry, "JDBC")
+Rel(automation_service, automation_db, "JDBC")
+Rel(actuator_service, actuator_db, "JDBC")
+
+Rel(device_service, Kafka, "publish device-registered")
+Rel(telemetry_service, Kafka, "publish telemetry-event")
+Rel(iot_gateway, Kafka, "send telemetry-data", "Kafka")
+Rel(automation_service, Kafka, "publish trigger-actuator", "Kafka")
+Rel(actuator_service, Kafka, "publish actuator-action", "Kafka")
+Rel(Kafka, telemetry_service, "consume telemetry-data", "Kafka")
+Rel(Kafka, actuator_service, "consume trigger-actuator", "Kafka")
+Rel(Kafka, automation_service, "consume telemetry-events", "Kafka")
+Rel(Kafka, iot_gateway, "consume actuator-action", "Kafka")
+Rel(Kafka, api_gateway, "consume telemetry-events", "Kafka")
+
+Rel(iot_gateway, actuator, "send command", "MQTT")
+Rel(sensor, iot_gateway, "receive telemetry-data", "MQTT")
+@enduml
