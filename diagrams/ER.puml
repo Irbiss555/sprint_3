@@ -1,0 +1,92 @@
+### Задание 3 — ER-диаграмма
+
+```plantuml
+@startuml
+!define primary_key(x) <b>x</b>
+entity "User" as user {
+  primary_key(id): UUID
+  email: string
+  password_hash: string
+  full_name: string
+  created_at: datetime
+}
+
+entity "Device" as device {
+  primary_key(id): UUID
+  user_id: UUID
+  name: string
+  type: string
+  status: string
+  registered_at: datetime
+}
+entity "HeatingActuator" as heat {
+  primary_key(id): UUID
+  device_id: UUID
+  target_temperature: float
+  mode: string
+}
+
+entity "LightingActuator" as light {
+  primary_key(id): UUID
+  device_id: UUID
+  brightness: int
+  color: string
+}
+
+entity "GateActuator" as gate {
+  primary_key(id): UUID
+  device_id: UUID
+  is_locked: boolean
+  open_timeout: int
+}
+
+entity "Sensor" as sensor {
+  primary_key(id): UUID
+  device_id: UUID
+  type: string
+}
+
+entity "Telemetry" as telemetry {
+  primary_key(id): UUID
+  device_id: UUID
+  parameter: string
+  value: float
+  metric: string
+  timestamp: datetime
+}
+
+entity "AutomationRule" as rule {
+  primary_key(id): UUID
+  user_id: UUID
+  name: string
+  enabled: boolean
+}
+
+entity "AutomationCondition" as condition {
+  primary_key(id): UUID
+  rule_id: UUID
+  device_id: UUID
+  parameter: string
+  metric: string
+  operator: string
+  threshold: float
+}
+
+entity "AutomationAction" as action {
+  primary_key(id): UUID
+  rule_id: UUID
+  device_id: UUID
+  command: string
+}
+
+user ||--o{ device : owns
+device ||--o{ telemetry : reports
+user ||--o{ rule : defines
+rule ||--o{ condition : triggers by
+rule ||--o{ action : executes
+device ||--o| heat : "1:1"
+device ||--o| light : "1:1"
+device ||--o| gate : "1:1"
+device ||--o| sensor : "1:1"
+
+@enduml
