@@ -1,0 +1,13 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(user, "Пользователь", "Управляет отоплением и смотрит температуру через веб-интерфейс")
+Person(installer, "Специалист", "Устанавливает и подключает оборудование")
+System(monolith, "Монолитное приложение", "Управляет отоплением и собирает данные с датчиков")
+System_Ext(sensor, "Датчики и реле", "Устройства, установленные в доме")
+
+Rel(user, monolith, "Веб-доступ")
+Rel(installer, monolith, "Конфигурирует при установке")
+Rel(monolith, sensor, "Запрашивает температуру и включает/выключает отопление", "Синхронный запрос")
+
+@enduml
