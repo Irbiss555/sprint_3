@@ -3,12 +3,19 @@
 ```plantuml
 @startuml
 !define primary_key(x) <b>x</b>
+
 entity "User" as user {
   primary_key(id): UUID
   email: string
   password_hash: string
   full_name: string
   created_at: datetime
+}
+
+entity "UserDevice" as user_device {
+  primary_key(id): UUID
+  user_id: UUID
+  device_id: UUID
 }
 
 entity "Device" as device {
@@ -79,7 +86,8 @@ entity "AutomationAction" as action {
   command: string
 }
 
-user ||--o{ device : owns
+user ||--o{ user_device : "1:N"
+user_device }|--|| device : "1:N"
 device ||--o{ telemetry : reports
 user ||--o{ rule : defines
 rule ||--o{ condition : triggers by

@@ -21,7 +21,7 @@ System_Boundary(smart_home, "Система управления умным до
   Container(web_app, "Web Application", "JS, CSS", "Веб-приложение для управления устройствами")
   Container(mobile_app, "Mobile Application", "Kotlin, Swift", "Мобильное приложение для управления устройствами")
 
-  Container(api_gateway, "API Gateway", "Маршрутизирует запросы пользователей")
+  Container(api_gateway, "API Gateway", "NGINX", "Маршрутизирует запросы пользователей")
   Container(user_service, "User Service", "Go", "Управление пользователями и авторизацией")
   Container(device_service, "Device Management Service", "Go", "Регистрация новых устройств")
   Container(actuator_service, "Actuator Service", "Go", "Управление устройствами умного дома")
